@@ -282,7 +282,7 @@ function startStage(){
     for(let i=0;i<keyProblemCount();i++){
       const lv=Math.min(3,(S.level||1)+(i>=keyProblemCount()-5?1:0)); // こまっら5問はボス(レベル+1)
       const p=genKey(lv); p.boss=(i>=keyProblemCount()-5);
-      S.cells.push(p);
+      S.cells.push({q:p.q, a:p.ans, hint:p.hint, boss:!!p.boss}); // 判定は必ず a に統一
     }
   }
   buildGrid(); nextCell(); updateHUD();
@@ -293,7 +293,8 @@ function buildGrid(){
   const wrap=$('gridWrap');
   if(!S.grids[S.stage]){ wrap.innerHTML='<div style="color:#333;font-size:13px;padding:6px;text-align:center;">🧠 かん所バトル：30モブ連戦！ さいごの5ひきはボスだ！</div>'; return; }
   const g=S.grids[S.stage];
-  let h='<table class="masu"><tr><th>×</th>'+g.cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+  const op = S.stage===0 ? '＋' : '−';
+  let h='<table class="masu"><tr><th>'+op+'</th>'+g.cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
   for(let r=0;r<9;r++){
     h+=`<tr><th>${g.rows[r]}</th>`;
     for(let c=0;c<9;c++) h+=`<td id="cell-${r}-${c}"></td>`;
@@ -341,7 +342,9 @@ function press(d){
 function submit(){
   const cell=S.cells[S.cur];
   if(S.input==='') return;
-  if(parseInt(S.input,10)===cell.a){
+  const norm=String(S.input).trim().replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0));
+  const val=Number(norm);
+  if(val===Number(cell.a)){
     sndOK(); S.combo++; S.bestCombo=Math.max(S.bestCombo,S.combo);
     $('combo').textContent=S.combo>=3?('🔥'+S.combo+'れんぞく！'):'';
     $('msg').textContent=S.combo>=5?'すごいぞ！モブを たおした！':'モブを たおした！';
